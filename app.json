@@ -1,0 +1,8 @@
+{
+  "name": "magic-football-predictions",
+  "description": "Data retriever",
+  "repository": "https://github.com/Tsinwntas/MFP-Server",
+  "logo": "https://cdn.rawgit.com/heroku/node-js-getting-started/master/public/node.svg",
+  "keywords": ["node", "express", "heroku"],
+  "image": "heroku/nodejs"
+}
