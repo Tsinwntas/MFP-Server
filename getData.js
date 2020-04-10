@@ -3,6 +3,8 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const fs = require('fs');
 
+console.log("START")
+
 //
 var donePercentage;
 var started =0;
