@@ -1,2 +1,2 @@
 #!/bin/bash
-node getData
+node ~/projects/MagicFootballPredictions/getData
