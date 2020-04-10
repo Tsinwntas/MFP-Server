@@ -3,7 +3,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const fs = require('fs');
 
-console.log("START")
+console.log("Getting Data: "+new Date());
 
 //
 var donePercentage;

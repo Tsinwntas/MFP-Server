@@ -1,4 +1,4 @@
-var childProcess = require('child_process');
+/*var childProcess = require('child_process');
 
 function runScript(scriptPath, callback) {
 
@@ -31,7 +31,7 @@ var interval = setInterval(function(){
         console.log('finished running getData.js');
     });
 },3600000);
-
+*/
 const express = require('express')
 const fs = require('fs');
 const app = express()
