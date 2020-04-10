@@ -23,11 +23,20 @@ function runScript(scriptPath, callback) {
     });
 
 }
+
 var interval = setInterval(function(){
 	console.log("updating data");
-// Now we can run a script and invoke a callback when complete, e.g.
-runScript('./getData.js', function (err) {
-    if (err) throw err;
-    console.log('finished running getData.js');
-});
+    runScript('./getData.js', function (err) {
+        if (err) throw err;
+        console.log('finished running getData.js');
+    });
 },3600000);
+
+const express = require('express')
+const fs = require('fs');
+const app = express()
+const port = 3000
+
+app.get('/manager', (req, res) => res.send(fs.readFileSync('data.js', 'utf8')))
+
+app.listen(port, () => console.log(`Example app listening at http://localhost:${port}`))

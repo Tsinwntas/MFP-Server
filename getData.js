@@ -3,6 +3,12 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const fs = require('fs');
 
+//
+var donePercentage;
+var started =0;
+var finished =0;
+//
+
 var base = "https://www.soccervista.com/";
 function Crawler(distance){
 this.matches = [];
@@ -356,11 +362,7 @@ function isToday(date,currentDate){
 
 	return parseInt(date[0]) == currentDate.getDate() && parseInt(date[1]) == currentDate.getMonth() + 1;
 }
-//
-var donePercentage;
-var started =0;
-var finished =0;
-//
+
 function getDonePercentage(){
 	if(started>0){
 		console.log((100.0*finished/started)+"%");
@@ -394,10 +396,10 @@ function getHtmlAsync(link, callback, currentDate, matches){
       });
      
     }).on("error", (err) => {
-		finished++;
       console.log("Error: " + err.message);
       console.log("Retrying..");
       getHtmlAsync(link, callback, currentDate, matches);
+		finished++;
     });
     
 }
@@ -410,13 +412,15 @@ for(var c = -2; c <= 2; c++){
 	crawlers[c+2].mine();
 }
 function checkDone(){
-	for(c in crawlers)
-		if(crawlers[c].matches.length < 40) return;
+	if(started == 0 || started != finished)
+		return;
+	// for(c in crawlers)
+	// 	if(crawlers[c].matches.length < 40) return;
 	//console.log(JSON.stringify(crawlers));
-	//saveToFile("data.js","var data = "+JSON.stringify(crawlers)+";");
-	//saveToFile("data.json",JSON.stringify(crawlers));
-	saveToFile("/var/www/html/js/data.js","var data = "+JSON.stringify(crawlers)+";");
-	saveToFile("/var/www/html/js/data.json",JSON.stringify(crawlers));
+	saveToFile("data.js","var data = "+JSON.stringify(crawlers)+";");
+	saveToFile("data.json",JSON.stringify(crawlers));
+	// saveToFile("/var/www/html/js/data.js","var data = "+JSON.stringify(crawlers)+";");
+	// saveToFile("/var/www/html/js/data.json",JSON.stringify(crawlers));
 	console.log("Check output file.");
 	clearInterval(checkDoneInterv);
 }
