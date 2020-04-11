@@ -4,8 +4,9 @@ const {
     JSDOM
 } = jsdom;
 var fs = require('fs');
-
+console.log("****************************");
 console.log("Getting Data: " + new Date());
+console.log("****************************");
 
 var started = 0;
 var finished = 0;
@@ -51,36 +52,45 @@ class Crawler {
                     var awayTotal = away.history.length;
                     var awayFTAtAway = [0, 0, 0];
                     var awayTotalAtAway = 0;
-                    var result;
-                    var i;
-                    for (i = 0; i < home.history.length; i++) {
-                        if (home.history[i].position) {
-                            homeTotalAtHome++;
+
+                    homeTotalAtHome = setHistory(home.history, homeTotalAtHome, homeFT, homeFTAtHome);
+                    awayTotalAtAway = setHistory(away.history, awayTotalAtAway, awayFT, awayFTAtAway);
+
+                    return getAlgorithmResults(homeTotal, homeFT, homeTotalAtHome, homeFTAtHome, awayTotal, awayFT, awayTotalAtAway, awayFTAtAway);
+                }
+
+                function setHistory(history, sideTotalAtSide, sideFT, sideFTAtSide) {
+                    for (var i = 0; i < history.length; i++) {
+                        if (history[i].position) {
+                            sideTotalAtSide++;
                         }
-                        result = getFTResult(home.history[i].score, home.history[i].position);
-                        homeFT[result]++;
-                        if (home.history[i].position) {
-                            homeFTAtHome[result]++;
-                        }
-                    }
-                    for (i = 0; i < away.history.length; i++) {
-                        if (away.history[i].position) {
-                            awayTotalAtAway++;
-                        }
-                        result = getFTResult(away.history[i].score, away.history[i].position);
-                        awayFT[result]++;
-                        if (away.history[i].position) {
-                            awayFTAtAway[result]++;
+                        var result = getFTResult(history[i].score, history[i].position);
+                        sideFT[result]++;
+                        if (history[i].position) {
+                            sideFTAtSide[result]++;
                         }
                     }
-                    var totalHomeWins = ((homeTotal > 0 ? homeFT[0] / homeTotal : 0) + (homeTotalAtHome > 0 ? homeFTAtHome[0] / homeTotalAtHome : 0)) / (homeTotalAtHome > 0 ? 2 : 1);
-                    var totalAwayWins = ((awayTotal > 0 ? awayFT[0] / awayTotal : 0) + (awayTotalAtAway > 0 ? awayFTAtAway[0] / awayTotalAtAway : 0)) / (awayTotalAtAway > 0 ? 2 : 1);
-                    var totalHomeDraws = ((homeTotal > 0 ? homeFT[1] / homeTotal : 0) + (homeTotalAtHome > 0 ? homeFTAtHome[1] / homeTotalAtHome : 0)) / (homeTotalAtHome > 0 ? 2 : 1);
-                    var totalAwayDraws = ((awayTotal > 0 ? awayFT[1] / awayTotal : 0) + (awayTotalAtAway > 0 ? awayFTAtAway[1] / awayTotalAtAway : 0)) / (awayTotalAtAway > 0 ? 2 : 1);
-                    var totalHomeLost = ((homeTotal > 0 ? homeFT[2] / homeTotal : 0) + (homeTotalAtHome > 0 ? homeFTAtHome[2] / homeTotalAtHome : 0)) / (homeTotalAtHome > 0 ? 2 : 1);
-                    var totalAwayLost = ((awayTotal > 0 ? awayFT[2] / awayTotal : 0) + (awayTotalAtAway > 0 ? awayFTAtAway[2] / awayTotalAtAway : 0)) / (awayTotalAtAway > 0 ? 2 : 1);
+                    return sideTotalAtSide;
+                }
+
+                function getAlgorithmResults(homeTotal, homeFT, homeTotalAtHome, homeFTAtHome, awayTotal, awayFT, awayTotalAtAway, awayFTAtAway) {
+                    var totalHomeWins = getAlgorithmResultsForPosition(homeTotal, 0, homeFT, homeTotalAtHome, homeFTAtHome);
+                    var totalAwayWins = getAlgorithmResultsForPosition(awayTotal, 0, awayFT, awayTotalAtAway, awayFTAtAway);
+                    var totalHomeDraws = getAlgorithmResultsForPosition(homeTotal, 1, homeFT, homeTotalAtHome, homeFTAtHome);
+                    var totalAwayDraws = getAlgorithmResultsForPosition(awayTotal, 1, awayFT, awayTotalAtAway, awayFTAtAway);
+                    var totalHomeLost = getAlgorithmResultsForPosition(homeTotal, 2, homeFT, homeTotalAtHome, homeFTAtHome);
+                    var totalAwayLost = getAlgorithmResultsForPosition(awayTotal, 2, awayFT, awayTotalAtAway, awayFTAtAway);
                     var total = totalHomeWins + totalAwayWins + totalHomeDraws + totalAwayDraws + totalHomeLost + totalAwayLost;
                     return [(totalHomeWins + totalAwayLost) / total, (totalHomeDraws + totalAwayDraws) / total, (totalAwayWins + totalHomeLost) / total];
+                }
+
+                function getAlgorithmResultsForPosition(sideTotal, position, sideFT, sideTotalAtSide, sideFTAtSide) {
+                    let sideTotalAverage = sideTotal > 0 ? sideFT[position] / sideTotal : 0;
+                    let sideTotalAverageAtSide = sideTotalAtSide > 0 ? sideFTAtSide[position] / sideTotalAtSide : 0;
+                    let positionResults = sideTotalAverage + sideTotalAverageAtSide;
+                    let positionTotal = sideTotalAtSide > 0 ? 2.0 : 1.0;
+
+                    return positionResults / positionTotal;
                 }
 
                 function getFTResult(score, position) {
@@ -234,7 +244,9 @@ class Crawler {
         }
 
         function getTargetDate(distance) {
-            return new Date((new Date().setDate(new Date().getDate() + distance)));
+            let totalTime = new Date().getDate() + distance;
+            let updatedDate = new Date().setDate(totalTime);
+            return new Date(updatedDate);
         }
 
         function fetchDate(link, currentDate, matches) {
@@ -242,7 +254,9 @@ class Crawler {
         }
 
         function dateToString(targetDate) {
-            return targetDate.getFullYear() + "-" + ((targetDate.getMonth() + 1) > 9 ? "" : "0") + (targetDate.getMonth() + 1) + "-" + (targetDate.getDate() > 9 ? "" : "0") + targetDate.getDate();
+            let month = ((targetDate.getMonth() + 1) > 9 ? "" : "0") + (targetDate.getMonth() + 1);
+            let day = (targetDate.getDate() > 9 ? "" : "0") + targetDate.getDate();
+            return targetDate.getFullYear() + "-" + month + "-" + day;
         }
 
         function mineDate(dom, currentDate, matches) {
@@ -280,13 +294,9 @@ class Crawler {
             var home = new Team(getTeamName(dom, 0));
             var away = new Team(getTeamName(dom, 1));
             setOdds(dom, home, away);
-            var score = getMatchScore(dom);
-            var time = getMatchTime(dom);
-            var homeHistoryTable = getHistoryTable(dom, 0);
-            var awayHistoryTable = getHistoryTable(dom, 1);
-            getTeamHistoryInLeague(home, league, homeHistoryTable, currentDate);
-            getTeamHistoryInLeague(away, league, awayHistoryTable, currentDate);
-            var currMatch = new Match(home, away, score, time);
+            getTeamHistoryInLeague(home, league, getHistoryTable(dom, 0), currentDate);
+            getTeamHistoryInLeague(away, league, getHistoryTable(dom, 1), currentDate);
+            var currMatch = new Match(home, away, getMatchScore(dom), getMatchTime(dom));
             currMatch.fix();
             matches.push(currMatch);
         }
@@ -327,22 +337,25 @@ class Crawler {
                 var relatable = false;
                 var records = historyTable.getElementsByTagName("tr");
                 for (var i = 0; i < records.length; i++) {
-                    if (records[i].textContent) {
-                        if (relatable && isMatch(records[i].textContent)) {
-                            var data = splitData(records[i].textContent);
-                            if (isToday(data[0].split("."), currentDate))
-                                continue;
-                            team.history.push(new Record(getPosition(team.name, data[1]), getScore(data[2]), data));
-                        } else if (records[i].textContent.includes(league)) {
-                            relatable = true;
-                        } else {
-                            relatable = false;
-                        }
-                    }
+                    relatable = createRelatableRecord(relatable, records[i], league, team, currentDate);
                 }
             } catch (DOMException) {
+                console.log(DOMException);
                 console.log(currentDate);
                 console.log(team);
+            }
+        }
+
+        function createRelatableRecord(relatable, record, league, team, currentDate) {
+            if (record) {
+                if (relatable && isMatch(record.textContent)) {
+                    createRecord(record.textContent, currentDate, team);
+                    return relatable;
+                } else if (record.textContent.includes(league)) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -350,15 +363,46 @@ class Crawler {
             return record.match(/[0-9][:][0-9]/);
         }
 
+        function createRecord(context, currentDate, team) {
+            var data = splitData(context);
+            if (isToday(data[0].split("."), currentDate))
+                return;
+            team.history.push(new Record(getPosition(team.name, data[1]), getScore(data[2]), data));
+        }
+
         function splitData(data) {
-            var date = data.match(/[0-9]+[.][0-9]+[.]/)[0];
-            data = removeFoundings(data, date, false, "");
-            var score = data.match(/[0-9][:][0-9]/)[0];
-            data = removeFoundings(data, score, false, "***");
+            var date;
+            ({
+                date,
+                data
+            } = getAndRemoveDate(data));
+            var score;
+            ({
+                score,
+                data
+            } = getAndRemoveScore(data));
             var teams = data.split("***");
             var home = teams[0];
             var away = teams[1].replace(/[ ]$/, "");
             return [date, home, score, away];
+        }
+
+        function getAndRemoveDate(data) {
+            var date = data.match(/[0-9]+[.][0-9]+[.]/)[0];
+            data = removeFoundings(data, date, false, "");
+            return {
+                date,
+                data
+            };
+        }
+
+        function getAndRemoveScore(data) {
+            var score = data.match(/[0-9][:][0-9]/)[0];
+            data = removeFoundings(data, score, false, "***");
+            return {
+                score,
+                data
+            };
         }
 
         function removeFoundings(string, stringToReplace, addSpace, newString) {
@@ -412,13 +456,15 @@ for (var c = -2; c <= 2; c++) {
 function checkDone() {
     if (started == 0 || started != finished)
         return;
-    saveToFile("data.js", "var data = " + JSON.stringify(crawlers) + ";");
-    saveToFile("data.json", JSON.stringify(crawlers));
+    saveToFile("data.js", "var data = " + JSON.stringify(crawlers) + ";", true);
+    saveToFile("data.json", JSON.stringify(crawlers), true);
     console.log("Check output file.");
     clearInterval(checkDoneInterv);
 }
 
-function saveToFile(file, string) {
+function saveToFile(file, string, isProduction) {
+    if (isProduction)
+        file = "/root/projects/MagicFootballPredictions/" + file;
     fs.writeFile(file, string, function (err) {
         if (err) {
             return console.log(err);
